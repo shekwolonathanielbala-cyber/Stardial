@@ -589,68 +589,6 @@
         ],
         "type": "object"
       },
-      "Project": {
-        "properties": {
-          "balance": {
-            "type": "string"
-          },
-          "collaborators": {
-            "items": {
-              "properties": {
-                "address": {
-                  "type": "string"
-                },
-                "alias": {
-                  "type": "string"
-                },
-                "basisPoints": {
-                  "type": "number"
-                }
-              },
-              "required": [
-                "address",
-                "alias",
-                "basisPoints"
-              ],
-              "type": "object"
-            },
-            "type": "array"
-          },
-          "locked": {
-            "type": "boolean"
-          },
-          "owner": {
-            "type": "string"
-          },
-          "projectId": {
-            "type": "string"
-          },
-          "projectType": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "token": {
-            "type": "string"
-          },
-          "totalDistributed": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "projectId",
-          "title",
-          "projectType",
-          "owner",
-          "token",
-          "balance",
-          "totalDistributed",
-          "locked",
-          "collaborators"
-        ],
-        "type": "object"
-      },
       "ReadinessComponents": {
         "properties": {
           "contract": {
@@ -1190,14 +1128,80 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/Project"
+                  "properties": {
+                    "nextCursor": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "projects": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "balance": {
+                            "description": "Current project balance in stroops",
+                            "type": "string"
+                          },
+                          "collaboratorCount": {
+                            "minimum": 0,
+                            "type": "integer"
+                          },
+                          "distributionRound": {
+                            "type": "integer"
+                          },
+                          "locked": {
+                            "type": "boolean"
+                          },
+                          "owner": {
+                            "type": "string"
+                          },
+                          "projectId": {
+                            "type": "string"
+                          },
+                          "projectType": {
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "token": {
+                            "type": "string"
+                          },
+                          "totalDistributed": {
+                            "description": "Total distributed in stroops",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "projectId",
+                          "title",
+                          "projectType",
+                          "owner",
+                          "token",
+                          "locked",
+                          "balance",
+                          "totalDistributed",
+                          "distributionRound",
+                          "collaboratorCount"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "total": {
+                      "minimum": 0,
+                      "type": "integer"
+                    }
                   },
-                  "type": "array"
+                  "required": [
+                    "projects",
+                    "total",
+                    "nextCursor"
+                  ],
+                  "type": "object"
                 }
               }
             },
-            "description": "List of projects"
+            "description": "Paginated list of project summaries (no nested collaborator objects)"
           },
           "400": {
             "content": {
@@ -2572,11 +2576,137 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Project"
+                  "additionalProperties": false,
+                  "properties": {
+                    "balance": {
+                      "description": "Current project balance in stroops",
+                      "type": "string"
+                    },
+                    "collaboratorCount": {
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "collaborators": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "address": {
+                            "description": "Collaborator Stellar address",
+                            "type": "string"
+                          },
+                          "alias": {
+                            "description": "Collaborator display name",
+                            "type": "string"
+                          },
+                          "basisPoints": {
+                            "description": "Share of the split in basis points (10000 = 100%)",
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "address",
+                          "alias",
+                          "basisPoints"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "distributionRound": {
+                      "type": "integer"
+                    },
+                    "expiresAt": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "locked": {
+                      "type": "boolean"
+                    },
+                    "owner": {
+                      "type": "string"
+                    },
+                    "participantPaymentStatuses": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "address": {
+                            "type": "string"
+                          },
+                          "alias": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "basisPoints": {
+                            "type": "integer"
+                          },
+                          "lastUpdated": {
+                            "nullable": true,
+                            "type": "number"
+                          },
+                          "roundId": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "status": {
+                            "enum": [
+                              "paid",
+                              "pending",
+                              "failed",
+                              "unpaid"
+                            ],
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "address",
+                          "alias",
+                          "basisPoints",
+                          "status",
+                          "roundId",
+                          "lastUpdated"
+                        ],
+                        "type": "object"
+                      },
+                      "nullable": true,
+                      "type": "array"
+                    },
+                    "projectId": {
+                      "type": "string"
+                    },
+                    "projectType": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "token": {
+                      "type": "string"
+                    },
+                    "totalDistributed": {
+                      "description": "Total distributed in stroops",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "projectId",
+                    "title",
+                    "projectType",
+                    "owner",
+                    "token",
+                    "locked",
+                    "balance",
+                    "totalDistributed",
+                    "distributionRound",
+                    "collaboratorCount",
+                    "collaborators",
+                    "expiresAt",
+                    "participantPaymentStatuses"
+                  ],
+                  "type": "object"
                 }
               }
             },
-            "description": "Project details"
+            "description": "Project details with collaborators and participant payment status"
           },
           "400": {
             "content": {

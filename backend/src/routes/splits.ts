@@ -55,6 +55,10 @@ import {
 } from "../schemas/admin.schemas.js";
 import { withResponseValidation } from "../middleware/validateResponse.js";
 import {
+  ProjectDetailResponseSchema,
+  ProjectListResponseSchema,
+} from "../schemas/project.schemas.js";
+import {
   claimableInfoSchema,
   contractBoolSchema,
   contractU32Schema,
@@ -196,8 +200,14 @@ import { SplitsController } from "../controllers/splits.controller.js";
 export const splitsRouter = Router();
 const ctrl = new SplitsController();
 
-splitsRouter.get("/", ctrl.listProjects.bind(ctrl));
-splitsRouter.get("/:projectId", ctrl.getProject.bind(ctrl));
+splitsRouter.get(
+  "/",
+  withResponseValidation(ProjectListResponseSchema, ctrl.listProjects.bind(ctrl)),
+);
+splitsRouter.get(
+  "/:projectId",
+  withResponseValidation(ProjectDetailResponseSchema, ctrl.getProject.bind(ctrl)),
+);
 /**
  * @openapi
  * POST /splits/{projectId}/lock
@@ -416,7 +426,10 @@ splitsRouter.get(
   )
 );
 
-splitsRouter.post("/:projectId/deposit", idempotencyMiddleware, async (req, res, next) => {
+splitsRouter.post(
+  "/:projectId/deposit",
+  idempotencyMiddleware,
+  async (req: Request, res: Response, next: NextFunction) => {
   try {
     const requestId = res.locals.requestId;
 
