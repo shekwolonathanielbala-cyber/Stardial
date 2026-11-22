@@ -184,17 +184,8 @@ usersRouter.post("/login", async (req: Request, res: Response, next: NextFunctio
     logAuthEvent(res, "login", "success", { userId: user.id });
 
     return res.status(200).json({
-      id: user.id,
-      walletAddress: user.walletAddress,
-      email: user.email,
-      alias: user.alias,
-      role: user.role,
-      isActive: user.isActive,
-      createdAt: user.createdAt.toISOString(),
-      updatedAt: user.updatedAt.toISOString(),
-      token,
       ...serializeUser(user),
-      token: signToken(user.walletAddress, sessionVersion),
+      token,
       ...(refreshToken ? { refreshToken } : {}),
     });
   } catch (error) {

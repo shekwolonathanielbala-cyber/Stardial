@@ -1,7 +1,6 @@
 import { Router, type NextFunction, type Request, type Response } from "express";
 import { z } from "zod";
 import { getLedgerBlocks } from "../services/ledger.service.js";
-import { idempotencyMiddleware } from "../middleware/idempotency.js";
 
 export const ledgerRouter = Router();
 

@@ -7,6 +7,7 @@ import {
   processWebhookDelivery,
   verifyWebhookSignature,
 } from "../services/webhooks.service.js";
+import { webhookPayloadSchema } from "../schemas/webhook.schemas.js";
 
 export const webhooksRouter = Router();
 
@@ -48,7 +49,13 @@ webhooksRouter.post("/:provider", async (req: Request, res: Response, next: Next
       throw unauthorized("Webhook signature is invalid.");
     }
 
-    const deliveryId = extractWebhookDeliveryId(req, req.body);
+    // Validate the JSON contract only after the signature check, so an
+    // unauthenticated caller cannot probe payload validation. Unknown
+    // provider-specific fields pass through; consumed fields and nesting are
+    // type-checked before deduplication or processor execution.
+    const payload = webhookPayloadSchema.parse(req.body);
+
+    const deliveryId = extractWebhookDeliveryId(req, payload);
     if (!deliveryId) {
       throw new AppError(
         ErrorType.VALIDATION,
@@ -57,7 +64,7 @@ webhooksRouter.post("/:provider", async (req: Request, res: Response, next: Next
       );
     }
 
-    const result = await processWebhookDelivery(provider, deliveryId, req.body, rawBody);
+    const result = await processWebhookDelivery(provider, deliveryId, payload, rawBody);
     return res.status(200).json({
       received: true,
       duplicate: result.outcome === "duplicate",

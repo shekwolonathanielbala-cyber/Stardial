@@ -81,3 +81,43 @@ describe("webhook route authentication", () => {
     expect(extractWebhookDeliveryId).not.toHaveBeenCalled();
   });
 });
+
+describe("webhook request body contract (Issue #15)", () => {
+  function signedRequest() {
+    return request(app)
+      .post("/webhooks/provider")
+      .set("x-webhook-signature", "signature")
+      .set("x-webhook-id", "delivery-1")
+      .set("Content-Type", "application/json");
+  }
+
+  it("accepts provider-specific fields alongside the validated envelope", async () => {
+    const payload = {
+      event: "payment.succeeded",
+      data: { amount: 500, currency: "USDC" },
+      provider_specific: { nested: true },
+    };
+
+    await signedRequest().send(payload).expect(200, { received: true, duplicate: false });
+
+    expect(processWebhookDelivery).toHaveBeenCalledWith(
+      "provider",
+      "delivery-1",
+      expect.objectContaining({ event: "payment.succeeded" }),
+      expect.any(Buffer),
+    );
+  });
+
+  it.each([
+    ["an array body", [{ event: "payment" }]],
+    ["a wrongly-typed delivery id", { delivery_id: 123 }],
+    ["a non-object data field", { event: "payment", data: "not-an-object" }],
+    ["an over-long event name", { event: "x".repeat(129) }],
+  ])("rejects %s before processing", async (_label, payload) => {
+    const res = await signedRequest().send(payload);
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe("validation_error");
+    expect(processWebhookDelivery).not.toHaveBeenCalled();
+  });
+});
