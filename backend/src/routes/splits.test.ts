@@ -386,6 +386,9 @@ describe("splits routes integration", () => {
   });
 
   it("fetches a project by id", async () => {
+    invalidateCacheByPrefix("project:");
+    invalidateCacheByPrefix("list_projects:");
+
     const historyRepository = {
       find: vi.fn().mockResolvedValue([]),
       findOne: vi.fn().mockResolvedValue(null),
@@ -397,26 +400,31 @@ describe("splits routes integration", () => {
       getRepository: () => historyRepository,
     } as unknown as DataSource);
 
+    getAccountMock.mockReset();
+    simulateTransactionMock.mockReset();
     getAccountMock.mockResolvedValue({ accountId: "GSIM" });
-    simulateTransactionMock
-      .mockResolvedValueOnce({
-        result: {
-          retval: { projectId: "project_1", title: "Project 1" },
-        },
-      })
-      .mockResolvedValueOnce({
-        result: {
-          retval: 123,
-        },
-      });
+    simulateTransactionMock.mockImplementation(
+      async (transaction: { preparedOperation?: { method?: string } }) => {
+        const method = transaction.preparedOperation?.method;
+        if (method === "get_project") {
+          return {
+            result: { retval: { projectId: "fetch_project_1", title: "Project 1" } },
+          };
+        }
+        if (method === "get_balance") {
+          return { result: { retval: 123n } };
+        }
+        return { result: { retval: 0n } };
+      },
+    );
 
     const app = createApp();
 
     try {
-      const response = await request(app).get("/splits/project_1").expect(200);
+      const response = await request(app).get("/splits/fetch_project_1").expect(200);
 
       expect(response.body).toEqual({
-        projectId: "project_1",
+        projectId: "fetch_project_1",
         title: "Project 1",
         projectType: "",
         owner: "",
@@ -433,6 +441,7 @@ describe("splits routes integration", () => {
       expect(getAccountMock).toHaveBeenCalledWith("GTESTSIMULATOR");
     } finally {
       setDataSourceForTests(null);
+      simulateTransactionMock.mockReset();
     }
   });
 
