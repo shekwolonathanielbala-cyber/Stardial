@@ -16,7 +16,7 @@ import {
 } from "../services/collaboration/invitation-registry.js";
 import { createHash } from "node:crypto";
 import { IsNull } from "typeorm";
-import { getMaxSessionVersionForEmail, revokeSessionsForEmail } from "../services/session-revocation.js";
+import { getMaxSessionVersionForEmail } from "../services/session-revocation.js";
 import { verificationResendCooldown } from "../services/verification-resend-cooldown.js";
 import { logAuthEvent } from "../services/auth-events.js";
 import {
