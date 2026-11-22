@@ -28,6 +28,8 @@ export interface SplitProject {
   totalDistributed: string;
   distributionRound: number;
   balance: string;
+  /** Present on list responses, where collaborators are omitted for payload size. */
+  collaboratorCount?: number;
   participantPaymentStatuses?: ParticipantPaymentStatus[] | null;
 }
 

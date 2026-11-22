@@ -13,9 +13,12 @@ import {
   encodeCursor,
   fetchProjectById,
   listProjects as listProjectsService,
-  serializeBigInts,
   simulateReadOnlyContractCall,
 } from "../services/splits.service.js";
+import {
+  serializeProjectDetail,
+  serializeProjectSummary,
+} from "../serializers/projects.serializer.js";
 import { recordProjectEdit } from "../services/project-history.js";
 import { contractU32Schema } from "../schemas/stellar-rpc.schemas.js";
 import { decodeContractValue } from "../services/rpc-response-validation.js";
@@ -81,13 +84,11 @@ export class SplitsController {
 
       const nextCursor = start + projects.length < totalCount ? encodeCursor(start + limit) : null;
 
-      return res.status(200).json(
-        serializeBigInts({
-          projects,
-          total: totalCount,
-          nextCursor,
-        }),
-      );
+      return res.status(200).json({
+        projects: projects.map(serializeProjectSummary),
+        total: totalCount,
+        nextCursor,
+      });
     } catch (error) {
       return next(error);
     }
@@ -124,7 +125,7 @@ export class SplitsController {
       }
 
       return res.status(200).json(
-        serializeBigInts({ ...projectRecord, participantPaymentStatuses }),
+        serializeProjectDetail({ ...projectRecord, participantPaymentStatuses }),
       );
     } catch (error) {
       return next(error);

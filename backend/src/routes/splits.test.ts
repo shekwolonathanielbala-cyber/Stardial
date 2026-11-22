@@ -386,6 +386,17 @@ describe("splits routes integration", () => {
   });
 
   it("fetches a project by id", async () => {
+    const historyRepository = {
+      find: vi.fn().mockResolvedValue([]),
+      findOne: vi.fn().mockResolvedValue(null),
+      create: vi.fn((entry: unknown) => entry),
+      save: vi.fn(async (entry: unknown) => entry),
+    };
+    setDataSourceForTests({
+      isInitialized: true,
+      getRepository: () => historyRepository,
+    } as unknown as DataSource);
+
     getAccountMock.mockResolvedValue({ accountId: "GSIM" });
     simulateTransactionMock
       .mockResolvedValueOnce({
@@ -401,14 +412,28 @@ describe("splits routes integration", () => {
 
     const app = createApp();
 
-    const response = await request(app).get("/splits/project_1").expect(200);
+    try {
+      const response = await request(app).get("/splits/project_1").expect(200);
 
-    expect(response.body).toEqual({
-      projectId: "project_1",
-      title: "Project 1",
-      balance: "123",
-    });
-    expect(getAccountMock).toHaveBeenCalledWith("GTESTSIMULATOR");
+      expect(response.body).toEqual({
+        projectId: "project_1",
+        title: "Project 1",
+        projectType: "",
+        owner: "",
+        token: "",
+        locked: false,
+        balance: "123",
+        totalDistributed: "0",
+        distributionRound: 0,
+        collaboratorCount: 0,
+        collaborators: [],
+        expiresAt: null,
+        participantPaymentStatuses: null,
+      });
+      expect(getAccountMock).toHaveBeenCalledWith("GTESTSIMULATOR");
+    } finally {
+      setDataSourceForTests(null);
+    }
   });
 
   it("reads admin allowlist state", async () => {

@@ -43,6 +43,10 @@ import {
   transactionReceiptSchema,
   transactionHistoryResponseSchema,
 } from "./schemas/transactions.schemas.js";
+import {
+  ProjectDetailResponseSchema,
+  ProjectSummaryResponseSchema,
+} from "./schemas/project.schemas.js";
 
 const registry = new OpenAPIRegistry();
 
@@ -214,27 +218,6 @@ function standardErrorResponses(options: {
 // - `backend/` Express API scaffold
 // - `demo/` Static HTML flow prototype
 
-const ProjectSchema = registry.register(
-  "Project",
-  z.object({
-    projectId: z.string(),
-    title: z.string(),
-    projectType: z.string(),
-    owner: z.string(),
-    token: z.string(),
-    balance: z.string(),
-    totalDistributed: z.string(),
-    locked: z.boolean(),
-    collaborators: z.array(
-      z.object({
-        address: z.string(),
-        alias: z.string(),
-        basisPoints: z.number(),
-      })
-    ),
-  })
-);
-
 const idempotencyKeyHeaderSchema = z.object({
   "Idempotency-Key": z
     .string()
@@ -279,10 +262,14 @@ registry.registerPath({
   },
   responses: {
     200: {
-      description: "List of projects",
+      description: "Paginated list of project summaries (no nested collaborator objects)",
       content: {
         "application/json": {
-          schema: z.array(ProjectSchema),
+          schema: z.object({
+            projects: z.array(ProjectSummaryResponseSchema),
+            total: z.number().int().nonnegative(),
+            nextCursor: z.string().nullable(),
+          }),
         },
       },
     },
@@ -364,10 +351,10 @@ registry.registerPath({
   },
   responses: {
     200: {
-      description: "Project details",
+      description: "Project details with collaborators and participant payment status",
       content: {
         "application/json": {
-          schema: ProjectSchema,
+          schema: ProjectDetailResponseSchema,
         },
       },
     },

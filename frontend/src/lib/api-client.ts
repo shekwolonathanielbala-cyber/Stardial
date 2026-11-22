@@ -654,6 +654,7 @@ function mapProjectToCamelCase(p: Record<string, unknown>): SplitProject {
       alias: stringFrom(c.alias),
       basisPoints: numberFrom(c.basisPoints ?? c.basis_points),
     })),
+    collaboratorCount: numberFrom(p.collaboratorCount, collaborators.length),
     participantPaymentStatuses: Array.isArray(p.participantPaymentStatuses)
       ? (p.participantPaymentStatuses as Record<string, unknown>[]).flatMap((status) => {
           const state = status.status;

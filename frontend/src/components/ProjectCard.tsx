@@ -74,7 +74,7 @@ export function ProjectCard({
 
           <div className="text-right">
             <p className="text-[10px] uppercase text-muted">{Compact ? "Earnings" : "Available"}</p>
-            <p className="text-[10px] text-muted">{project.collaborators.length} collaborator{project.collaborators.length !== 1 ? "s" : ""}</p>
+            <p className="text-[10px] text-muted">{project.collaboratorCount ?? project.collaborators.length} collaborator{(project.collaboratorCount ?? project.collaborators.length) !== 1 ? "s" : ""}</p>
           </div>
         </div>
 
